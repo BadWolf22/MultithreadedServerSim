@@ -4,5 +4,5 @@ namespace MultithreadedServerSim.Interfaces;
 
 internal interface IRequestHandler
 {
-    Response HandleRequest(Request request);
+    Response HandleRequest(dynamic details);
 }

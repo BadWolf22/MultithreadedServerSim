@@ -21,9 +21,10 @@ internal class Server : IServer
         {
             while (true)
             {
-                var didProcess = ProcessRequestInNewThread();
-                if (_processingActive.IsCancellationRequested && !didProcess)
+                while (ProcessRequestInNewThread()) ;
+                if (_processingActive.IsCancellationRequested)
                     break;
+                Thread.Sleep(10000);
             }
         });
         _requestProcessor.Start();
@@ -51,11 +52,10 @@ internal class Server : IServer
             return false;
 
         var requestId = Guid.NewGuid();
-        var handler = _requestHandlerResolver.Resolve(request.Path, _processingActive.Token);
-
         var requestThread = new Thread(() =>
         {
-            var response = handler.HandleRequest(request);
+            var handler = _requestHandlerResolver.Resolve(request, _processingActive.Token);
+            var response = handler.Invoke(() => Thread.Sleep(1));
             _requestsInProgress.Remove(requestId);
             request.Respond(response);
         });

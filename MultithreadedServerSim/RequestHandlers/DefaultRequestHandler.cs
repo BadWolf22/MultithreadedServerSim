@@ -5,9 +5,8 @@ namespace MultithreadedServerSim.RequestHandlers;
 
 internal class DefaultRequestHandler : IRequestHandler
 {
-    public Response HandleRequest(Request request)
+    public Response HandleRequest(dynamic details)
     {
-        Thread.Sleep(5000);
-        return new Response(200, request.Body);
+        return new Response(200, details.body);
     }
 }

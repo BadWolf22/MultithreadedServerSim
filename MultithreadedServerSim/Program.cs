@@ -1,13 +1,17 @@
-﻿using MultithreadedServerSim;
+﻿using Autofac;
 using MultithreadedServerSim.Contracts;
-using MultithreadedServerSim.Helpers;
+using MultithreadedServerSim.Interfaces;
 
 internal class Program
 {
+    internal static IContainer? _container;
+
     private static void Main(string[] args)
     {
-        var resolver = new RequestHandlerResolver();
-        var server = new Server(resolver);
+        var builder = new ContainerBuilder();
+        builder.RegisterModule<MyModule>();
+        _container = builder.Build();
+        var server = _container.Resolve<IServer>();
 
         while (true)
         {
@@ -31,7 +35,7 @@ internal class Program
                 ConsoleWrapper.WriteLine("Request Rejected");
                 continue;
             }
-            ConsoleWrapper.WriteLine("");
+            ConsoleWrapper.WriteLine("Waiting...");
             ConsoleWrapper.WriteLine("");
         }
     }

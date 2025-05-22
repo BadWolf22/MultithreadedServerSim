@@ -1,7 +1,8 @@
-﻿namespace MultithreadedServerSim.Interfaces;
+﻿using MultithreadedServerSim.Contracts;
+
+namespace MultithreadedServerSim.Interfaces;
 
 internal interface IRequestHandlerResolver
 {
-    IRequestHandler Resolve(string path, CancellationToken cancellationToken = default);
-    void RegisterHandler(string path, Func<IRequestHandler> requestHandlerCreator);
+    Func<Action?, Response> Resolve(Request request, CancellationToken cancellationToken = default);
 }

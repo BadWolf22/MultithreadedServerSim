@@ -2,9 +2,10 @@
 {
     private static List<string> _printedLines = [""];
 
-    private static void Write(string stringToWrite, int index, bool addNewLine = false)
+    private static void Write(string stringToWrite, int index, bool addNewLine = false, bool appendToPreviousContent = true)
     {
-        _printedLines[index] = string.Join("", _printedLines[index], stringToWrite);
+        var previousContent = appendToPreviousContent ? _printedLines[index] : "";
+        _printedLines[index] = string.Join("", previousContent, stringToWrite);
         if (addNewLine) _printedLines.Add("");
     }
 
@@ -31,7 +32,7 @@
 
     public static void WriteAtHeight(string stringToWrite, int height)
     {
-        Write(stringToWrite, height);
+        Write(stringToWrite, height, appendToPreviousContent: false);
         Console.SetCursorPosition(0, 0);
         Console.Clear();
         Console.Write(string.Join("\n", _printedLines));
