@@ -1,3 +1,3 @@
 ﻿namespace MultithreadedServerSim.Contracts;
 
-internal class TicketLock;
+internal class TicketLock : ReaderWriterLockSlim;

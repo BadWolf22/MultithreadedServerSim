@@ -6,13 +6,16 @@ namespace MultithreadedServerSim;
 internal class Server : IServer
 {
     private readonly IRequestHandlerResolver _requestHandlerResolver;
+    private readonly Object _queueLock = new();
     private readonly Queue<Request> _requestQueue;
     private readonly Thread _requestProcessor;
     private readonly Dictionary<Guid, Thread> _requestsInProgress;
     private readonly CancellationTokenSource _processingActive;
+    private readonly SemaphoreSlim _threadSemaphore;
 
     public Server(IRequestHandlerResolver requestHandlerResolver)
     {
+        _threadSemaphore = new(3, 3);
         _requestHandlerResolver = requestHandlerResolver;
         _requestQueue = [];
         _requestsInProgress = [];
@@ -35,29 +38,47 @@ internal class Server : IServer
         if (_processingActive.IsCancellationRequested)
             return false;
 
-        _requestQueue.Enqueue(request);
+        lock (_queueLock)
+        {
+            _requestQueue.Enqueue(request);
+        }
         return true;
     }
 
     public void ShutdownGracefully()
     {
-        ConsoleWrapper.WriteLine("SHUTDOWN INITIATED");
-        _processingActive.Cancel();
-        _requestProcessor.Join();
+        using (_threadSemaphore)
+        {
+            ConsoleWrapper.WriteLine("SHUTDOWN INITIATED");
+            _processingActive.Cancel();
+            _requestProcessor.Join();
+        }
     }
 
     private bool ProcessRequestInNewThread()
     {
-        if (!_requestQueue.TryDequeue(out var request))
-            return false;
+        Request request;
+        _threadSemaphore.Wait();
+        lock (_queueLock)
+        {
+            if (!_requestQueue.TryDequeue(out request!))
+                return false;
+        }
 
         var requestId = Guid.NewGuid();
         var requestThread = new Thread(() =>
         {
-            var handler = _requestHandlerResolver.Resolve(request, _processingActive.Token);
-            var response = handler.Invoke(() => Thread.Sleep(1));
-            _requestsInProgress.Remove(requestId);
-            request.Respond(response);
+            try
+            {
+                var handler = _requestHandlerResolver.Resolve(request, _processingActive.Token);
+                var response = handler.Invoke(() => Thread.Sleep(5000));
+                _requestsInProgress.Remove(requestId);
+                request.Respond(response);
+            }
+            finally
+            {
+                _threadSemaphore.Release();
+            }
         });
         _requestsInProgress[requestId] = requestThread;
         requestThread.Start();

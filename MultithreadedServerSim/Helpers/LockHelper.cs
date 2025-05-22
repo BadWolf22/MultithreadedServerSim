@@ -93,4 +93,44 @@ internal static class LockHelper
     }
 
     #endregion Mutex
+
+    #region ReadWriteLock
+
+    public static TReturn ExecuteWithReadLock<TReturn>(Func<TReturn> action, ReaderWriterLockSlim lockObject)
+    {
+        var acquired = false;
+        try
+        {
+            lockObject.EnterReadLock();
+            acquired = true;
+            return action.Invoke();
+        }
+        finally
+        {
+            if (acquired)
+            {
+                lockObject.ExitReadLock();
+            }
+        }
+    }
+
+    public static void ExecuteWithWriteLock(Action action, ReaderWriterLockSlim lockObject)
+    {
+        var acquired = false;
+        try
+        {
+            lockObject.EnterWriteLock();
+            acquired = true;
+            action.Invoke();
+        }
+        finally
+        {
+            if (acquired)
+            {
+                lockObject.ExitWriteLock();
+            }
+        }
+    }
+
+    #endregion
 }

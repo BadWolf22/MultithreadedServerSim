@@ -8,25 +8,34 @@ internal class TicketService(ITicketRepository ticketRepository, TicketLock tick
 {
     public HashSet<int> GetAvailableTicketIds()
     {
-        //return LockHelper.ExecuteWithTryMonitor(ticketRepository.GetAvailableTicketIds, ticketLock);
-        //return LockHelper.ExecuteWithMonitor(ticketRepository.GetAvailableTicketIds, ticketLock);
-        //return LockHelper.ExecuteWithLock(ticketRepository.GetAvailableTicketIds, ticketLock);
-        return LockHelper.ExecuteWithMutex(ticketRepository.GetAvailableTicketIds, nameof(ticketLock));
+        HashSet<int> action() => ticketRepository.GetAvailableTicketIds();
+        //return LockHelper.ExecuteWithTryMonitor(action, ticketLock);
+        //return LockHelper.ExecuteWithMonitor(action, ticketLock);
+        //return LockHelper.ExecuteWithLock(action, ticketLock);
+        //return LockHelper.ExecuteWithMutex(action, nameof(ticketLock));
+        return LockHelper.ExecuteWithReadLock(action, ticketLock);
+        //return action();
     }
 
     public void BookTicket(int id, string userName)
     {
-        //LockHelper.ExecuteWithTryMonitor(() => ticketRepository.BookTicket(id, userName), ticketLock);
-        //LockHelper.ExecuteWithMonitor(() => ticketRepository.BookTicket(id, userName), ticketLock);
-        //LockHelper.ExecuteWithLock(() => ticketRepository.BookTicket(id, userName), ticketLock);
-        LockHelper.ExecuteWithMutex(() => ticketRepository.BookTicket(id, userName), nameof(ticketLock));
+        void action() => ticketRepository.BookTicket(id, userName);
+        //LockHelper.ExecuteWithTryMonitor(action, ticketLock);
+        //LockHelper.ExecuteWithMonitor(action, ticketLock);
+        //LockHelper.ExecuteWithLock(action, ticketLock);
+        //LockHelper.ExecuteWithMutex(action, nameof(ticketLock));
+        LockHelper.ExecuteWithWriteLock(action, ticketLock);
+        //action();
     }
 
     public void ReleaseTicket(int id)
     {
-        //LockHelper.ExecuteWithTryMonitor(() => ticketRepository.ReleaseTicket(id), ticketLock);
-        //LockHelper.ExecuteWithMonitor(() => ticketRepository.ReleaseTicket(id), ticketLock);
-        //LockHelper.ExecuteWithLock(() => ticketRepository.ReleaseTicket(id), ticketLock);
-        LockHelper.ExecuteWithMutex(() => ticketRepository.ReleaseTicket(id), nameof(ticketLock));
+        void action() => ticketRepository.ReleaseTicket(id);
+        //LockHelper.ExecuteWithTryMonitor(action, ticketLock);
+        //LockHelper.ExecuteWithMonitor(action, ticketLock);
+        //LockHelper.ExecuteWithLock(action, ticketLock);
+        //LockHelper.ExecuteWithMutex(action, nameof(ticketLock));
+        LockHelper.ExecuteWithWriteLock(action, ticketLock);
+        //action();
     }
 }
